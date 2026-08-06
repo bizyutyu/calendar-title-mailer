@@ -3,7 +3,7 @@ import { DEFAULT_THEMES } from './theme.js';
 import type { AppConfig, Result } from './types.js';
 import { err, ok } from './types.js';
 
-const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 
 function parseThemeList(raw: string | null): string[] {
   if (raw === null) {
@@ -32,9 +32,15 @@ export function loadAppConfig(reader: PropertyReader): Result<AppConfig> {
     });
   }
 
+  const notifyEmail = reader.getProperty('NOTIFY_EMAIL')?.trim();
+  if (notifyEmail === undefined || notifyEmail === '') {
+    return err({
+      code: 'CONFIG_MISSING_NOTIFY_EMAIL',
+      message: 'Script Property "NOTIFY_EMAIL" が設定されていません',
+    });
+  }
+
   const geminiModel = reader.getProperty('GEMINI_MODEL')?.trim() || DEFAULT_MODEL;
-  const notifyEmailRaw = reader.getProperty('NOTIFY_EMAIL')?.trim();
-  const notifyEmail = notifyEmailRaw && notifyEmailRaw.length > 0 ? notifyEmailRaw : undefined;
   const skipEmailWhenNoEvents = parseBoolean(reader.getProperty('SKIP_EMAIL_WHEN_NO_EVENTS'), false);
   const themes = parseThemeList(reader.getProperty('THEME_LIST'));
 

@@ -7,21 +7,16 @@ import { setupDailyTrigger as setupDailyTriggerImpl } from './trigger.js';
 import { buildFallbackTitleResult } from './prompt.js';
 import type { AppConfig, DailyScheduleInput, ThemeState, TitleResult } from './types.js';
 
-function resolveNotifyEmail(config: AppConfig | null): string {
-  if (config?.notifyEmail) {
-    return config.notifyEmail;
-  }
-  return Session.getActiveUser().getEmail();
-}
-
 function logError(context: string, error: unknown): void {
   console.error(`[calendar-title-mailer] ${context}`, error);
 }
 
 function notifyFailure(config: AppConfig | null, context: string): void {
+  if (config === null) {
+    return;
+  }
   try {
-    const to = resolveNotifyEmail(config);
-    MailApp.sendEmail(to, 'calendar-title-mailerでエラーが発生しました', context);
+    MailApp.sendEmail(config.notifyEmail, 'calendar-title-mailerでエラーが発生しました', context);
   } catch (cause) {
     logError('エラー通知メールの送信にも失敗しました', cause);
   }
@@ -99,7 +94,7 @@ export function runDailyMailer(): void {
   }
 
   try {
-    sendDailyMail(MailApp, resolveNotifyEmail(config), titleResult);
+    sendDailyMail(MailApp, config.notifyEmail, titleResult);
   } catch (cause) {
     logError('メール送信に失敗しました', cause);
   }

@@ -55,10 +55,12 @@ mise install   # mise.toml に記載のバージョンを取得
    | プロパティ名 | 必須 | 説明 |
    | --- | --- | --- |
    | `GEMINI_API_KEY` | ✅ | Google AI Studio で発行した Gemini API キー |
-   | `GEMINI_MODEL` | - | Gemini のモデル名。未設定時は `gemini-2.5-flash-lite` |
-   | `NOTIFY_EMAIL` | - | 通知先メールアドレス。未設定時は実行ユーザー自身 |
+   | `GEMINI_MODEL` | - | Gemini のモデル名。未設定時は `gemini-3.5-flash-lite` |
+   | `NOTIFY_EMAIL` | ✅ | 通知先メールアドレス |
    | `SKIP_EMAIL_WHEN_NO_EVENTS` | - | `true`/`false`。予定が0件の日に送信をスキップするか（未設定時は`false`＝スキップしない） |
    | `THEME_LIST` | - | カンマ区切りの週替わりテーマ一覧。未設定時は `src/theme.ts` のデフォルト一覧を使用 |
+
+   > `NOTIFY_EMAIL` を必須にしているのは、実行ユーザー自身のアドレスを取得する `Session.getActiveUser()` には `userinfo.email` スコープが別途必要になり、`appsscript.json` の権限を1つ増やすことになるためです。個人利用が前提のため、権限を増やすより明示的な設定を必須にする方針にしています。
 
 7. ビルド＆デプロイ（型チェック→テスト→esbuildビルド→`clasp push` を一括実行）
 

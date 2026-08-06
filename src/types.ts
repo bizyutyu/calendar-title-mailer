@@ -40,13 +40,14 @@ export interface ThemeState {
 export interface AppConfig {
   geminiApiKey: string;
   geminiModel: string;
-  notifyEmail?: string;
+  notifyEmail: string;
   skipEmailWhenNoEvents: boolean;
   themes: string[];
 }
 
 export type AppErrorCode =
   | 'CONFIG_MISSING_API_KEY'
+  | 'CONFIG_MISSING_NOTIFY_EMAIL'
   | 'CALENDAR_FETCH_FAILED'
   | 'GEMINI_REQUEST_FAILED'
   | 'GEMINI_RESPONSE_INVALID'
