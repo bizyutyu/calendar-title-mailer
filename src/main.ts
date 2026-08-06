@@ -21,7 +21,7 @@ function logError(context: string, error: unknown): void {
 function notifyFailure(config: AppConfig | null, context: string): void {
   try {
     const to = resolveNotifyEmail(config);
-    GmailApp.sendEmail(to, 'calendar-title-mailerでエラーが発生しました', context);
+    MailApp.sendEmail(to, 'calendar-title-mailerでエラーが発生しました', context);
   } catch (cause) {
     logError('エラー通知メールの送信にも失敗しました', cause);
   }
@@ -99,7 +99,7 @@ export function runDailyMailer(): void {
   }
 
   try {
-    sendDailyMail(GmailApp, resolveNotifyEmail(config), titleResult);
+    sendDailyMail(MailApp, resolveNotifyEmail(config), titleResult);
   } catch (cause) {
     logError('メール送信に失敗しました', cause);
   }
