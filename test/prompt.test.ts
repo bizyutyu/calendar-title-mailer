@@ -27,19 +27,19 @@ describe('buildPrompt', () => {
 });
 
 describe('buildResponseSchema', () => {
-  it('title/subtitleを必須項目とするOBJECTスキーマを返す', () => {
+  it('title/summaryを必須項目とするOBJECTスキーマを返す', () => {
     const schema = buildResponseSchema();
     expect(schema).toMatchObject({
       type: 'OBJECT',
-      required: ['title', 'subtitle'],
+      required: ['title', 'summary'],
     });
   });
 });
 
 describe('parseGeminiResponseText', () => {
   it('正しいJSONをパースできる', () => {
-    const result = parseGeminiResponseText('{"title":"タイトル","subtitle":"サブタイトル"}');
-    expect(result).toEqual({ ok: true, value: { title: 'タイトル', subtitle: 'サブタイトル' } });
+    const result = parseGeminiResponseText('{"title":"タイトル","summary":"要約"}');
+    expect(result).toEqual({ ok: true, value: { title: 'タイトル', summary: '要約' } });
   });
 
   it('不正なJSONはエラーになる', () => {
@@ -56,22 +56,22 @@ describe('parseGeminiResponseText', () => {
   });
 
   it('titleが欠落している場合はエラーになる', () => {
-    const result = parseGeminiResponseText('{"subtitle":"サブタイトル"}');
+    const result = parseGeminiResponseText('{"summary":"要約"}');
     expect(result.ok).toBe(false);
   });
 
-  it('subtitleが欠落している場合はエラーになる', () => {
+  it('summaryが欠落している場合はエラーになる', () => {
     const result = parseGeminiResponseText('{"title":"タイトル"}');
     expect(result.ok).toBe(false);
   });
 
   it('titleが空文字の場合はエラーになる', () => {
-    const result = parseGeminiResponseText('{"title":"  ","subtitle":"サブタイトル"}');
+    const result = parseGeminiResponseText('{"title":"  ","summary":"要約"}');
     expect(result.ok).toBe(false);
   });
 
-  it('subtitleが空文字の場合はエラーになる', () => {
-    const result = parseGeminiResponseText('{"title":"タイトル","subtitle":""}');
+  it('summaryが空文字の場合はエラーになる', () => {
+    const result = parseGeminiResponseText('{"title":"タイトル","summary":""}');
     expect(result.ok).toBe(false);
   });
 });
@@ -81,7 +81,7 @@ describe('buildFallbackTitleResult', () => {
     const input: DailyScheduleInput = { date: '2026-08-06', events: [] };
     const result = buildFallbackTitleResult(input, 'SF風');
     expect(result.title).toContain('ゆとり');
-    expect(result.subtitle).toContain('SF風');
+    expect(result.summary).toContain('SF風');
   });
 
   it('予定がある場合は件数とテーマ名を含む文言を返す', () => {
@@ -94,6 +94,6 @@ describe('buildFallbackTitleResult', () => {
     };
     const result = buildFallbackTitleResult(input, 'ビジネス視点');
     expect(result.title).toContain('2件');
-    expect(result.subtitle).toContain('ビジネス視点');
+    expect(result.summary).toContain('ビジネス視点');
   });
 });

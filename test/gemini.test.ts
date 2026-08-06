@@ -30,14 +30,14 @@ describe('fetchGeminiTitleResult', () => {
   it('成功レスポンスからTitleResultを取り出す', () => {
     const body = JSON.stringify({
       candidates: [
-        { content: { parts: [{ text: '{"title":"タイトル","subtitle":"サブタイトル"}' }] } },
+        { content: { parts: [{ text: '{"title":"タイトル","summary":"要約"}' }] } },
       ],
     });
     const fetcher: HttpFetcher = { fetch: vi.fn(() => fakeResponse(200, body)) };
 
     const result = fetchGeminiTitleResult(fetcher, 'api-key', 'gemini-2.5-flash-lite', input, 'SF風');
 
-    expect(result).toEqual({ ok: true, value: { title: 'タイトル', subtitle: 'サブタイトル' } });
+    expect(result).toEqual({ ok: true, value: { title: 'タイトル', summary: '要約' } });
   });
 
   it('4xx/5xxステータスの場合はGEMINI_REQUEST_FAILEDを返す', () => {

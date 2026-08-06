@@ -12,7 +12,7 @@ export interface DailyScheduleInput {
 
 export interface TitleResult {
   title: string;
-  subtitle: string;
+  summary: string;
 }
 
 export interface GeminiGenerateContentRequest {
