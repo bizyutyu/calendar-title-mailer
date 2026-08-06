@@ -109,7 +109,6 @@ export function setupDailyTrigger(): void {
   setupDailyTriggerImpl();
 }
 
-// GASはトリガー実行・エディタからの手動実行時にグローバル関数名で解決するため、
-// esbuildのIIFEバンドル内からglobalThisへ明示的に公開する。
-(globalThis as unknown as Record<string, unknown>).runDailyMailer = runDailyMailer;
-(globalThis as unknown as Record<string, unknown>).setupDailyTrigger = setupDailyTrigger;
+// runDailyMailer / setupDailyTrigger は scripts/build.mjs の esbuild 設定
+// （globalName + footer）で GAS グローバルのトップレベル関数として公開され、
+// エディタの実行対象・時間主導トリガーから関数名で解決される。
