@@ -12,14 +12,14 @@ function fakeFetcher(statusCode: number, contentText = 'ok'): HttpFetcher {
 }
 
 describe('buildDailyMessageText', () => {
-  it('固定プレフィックスのみを太字にし、titleは太字の外に続けて出力する', () => {
+  it('固定プレフィックス+titleをプレーンテキストの1行目にし、summaryを次の行に出力する', () => {
     const text = buildDailyMessageText({ title: '今日のタイトル', summary: '今日の要約' });
-    expect(text).toBe('*【本日のタイトル】*今日のタイトル\n今日の要約');
+    expect(text).toBe('【本日のタイトル】今日のタイトル\n今日の要約');
   });
 
-  it('titleに*が含まれても太字装飾が崩れない（太字はプレフィックスのみで完結する）', () => {
+  it('titleに*が含まれてもそのまま出力される（太字装飾は使わないため崩れない）', () => {
     const text = buildDailyMessageText({ title: '退屈な*重要*会議', summary: '要約' });
-    expect(text).toBe('*【本日のタイトル】*退屈な*重要*会議\n要約');
+    expect(text).toBe('【本日のタイトル】退屈な*重要*会議\n要約');
   });
 
   it('titleとsummaryに含まれる & < > をSlack mrkdwn仕様通りにエスケープする', () => {
@@ -28,7 +28,7 @@ describe('buildDailyMessageText', () => {
       summary: 'a < b && c > d',
     });
     expect(text).toBe(
-      '*【本日のタイトル】*&lt;!channel&gt; &amp; &lt;b&gt;test&lt;/b&gt;\na &lt; b &amp;&amp; c &gt; d',
+      '【本日のタイトル】&lt;!channel&gt; &amp; &lt;b&gt;test&lt;/b&gt;\na &lt; b &amp;&amp; c &gt; d',
     );
   });
 });
@@ -53,7 +53,7 @@ describe('sendDailyNotification', () => {
     expect(fetcher.fetch).toHaveBeenCalledWith('https://hooks.slack.com/services/xxx', {
       method: 'post',
       contentType: 'application/json',
-      payload: JSON.stringify({ text: '*【本日のタイトル】*タイトル\n要約' }),
+      payload: JSON.stringify({ text: '【本日のタイトル】タイトル\n要約' }),
       muteHttpExceptions: true,
     });
   });

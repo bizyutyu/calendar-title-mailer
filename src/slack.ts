@@ -14,7 +14,7 @@ function escapeSlackMrkdwn(text: string): string {
 export function buildDailyMessageText(result: TitleResult): string {
   const title = escapeSlackMrkdwn(result.title);
   const summary = escapeSlackMrkdwn(result.summary);
-  return `*${SUBJECT_PREFIX}*${title}\n${summary}`;
+  return `${SUBJECT_PREFIX}${title}\n${summary}`;
 }
 
 export function buildErrorMessageText(context: string): string {
