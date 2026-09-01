@@ -1,8 +1,8 @@
 # calendar-title-mailer
 
-毎朝、Google カレンダー（デフォルトカレンダー）の今日の予定をもとに、Gemini API でタイトルと要約を生成し、メールで自分宛てに通知する Google Apps Script (GAS) プロジェクトです。
+毎朝、Google カレンダー（デフォルトカレンダー）の今日の予定をもとに、Gemini API でタイトルと要約を生成し、Slack（Incoming Webhook）で通知する Google Apps Script (GAS) プロジェクトです。
 
-メールの件名には固定プレフィックス `【本日のタイトル】` + Geminiが生成したタイトル、本文にはその日の予定をユニークに要約した文章が入ります（予定一覧そのものはメール本文に含まれません）。固定プレフィックスにより、後からメールを検索・絞り込みしやすくしています。
+通知メッセージの1行目には固定プレフィックス `【本日のタイトル】` + Geminiが生成したタイトル、続けてその日の予定をユニークに要約した文章が入ります（予定一覧そのものはメッセージ本文に含まれません）。固定プレフィックスにより、後から検索・絞り込みしやすくしています。
 
 毎週、固定リストの中から「世界観テーマ」（SF風、時代劇風、スポーツ実況風…）を1つ順番に選び、その週はGeminiにそのテーマの文体でタイトル・要約を生成させます。
 
@@ -50,19 +50,26 @@ mise install   # mise.toml に記載のバージョンを取得
 
    > 本アプリは予定のタイトル・時刻を Gemini API に送信します。無料枠は送信内容が Google のモデル改善に利用され得るため、機密性の高い予定を扱う場合は有料（GCP / Vertex AI 経由）のキーを検討してください。
 
-6. `pnpm run open` で GAS エディタを開き、「プロジェクトの設定」→「スクリプト プロパティ」で以下を設定する
+6. Slack Incoming Webhook を発行する
+
+   1. [api.slack.com/apps](https://api.slack.com/apps) → 「Create New App」→「From scratch」で通知用のアプリを作成する
+   2. 作成したアプリの設定画面で「Incoming Webhooks」を有効化（ON）にする
+   3. 同じ画面の「Add New Webhook to Workspace」から通知先チャンネルを選んで許可する
+   4. 発行された `https://hooks.slack.com/services/...` 形式の URL を控える
+
+   > このURLを知っている人は誰でもそのチャンネルに投稿できるため、コードやコミット履歴に平文で残さないでください（後述のスクリプトプロパティにのみ保存します）。
+
+7. `pnpm run open` で GAS エディタを開き、「プロジェクトの設定」→「スクリプト プロパティ」で以下を設定する
 
    | プロパティ名 | 必須 | 説明 |
    | --- | --- | --- |
    | `GEMINI_API_KEY` | ✅ | Google AI Studio で発行した Gemini API キー |
    | `GEMINI_MODEL` | - | Gemini のモデル名。未設定時は `gemini-3.5-flash-lite` |
-   | `NOTIFY_EMAIL` | ✅ | 通知先メールアドレス |
-   | `SKIP_EMAIL_WHEN_NO_EVENTS` | - | `true`/`false`。予定が0件の日に送信をスキップするか（未設定時は`false`＝スキップしない） |
+   | `SLACK_WEBHOOK_URL` | ✅ | 手順6で発行した Slack Incoming Webhook の URL |
+   | `SKIP_NOTIFICATION_WHEN_NO_EVENTS` | - | `true`/`false`。予定が0件の日に送信をスキップするか（未設定時は`false`＝スキップしない） |
    | `THEME_LIST` | - | カンマ区切りの週替わりテーマ一覧。未設定時は `src/theme.ts` のデフォルト一覧を使用 |
 
-   > `NOTIFY_EMAIL` を必須にしているのは、実行ユーザー自身のアドレスを取得する `Session.getActiveUser()` には `userinfo.email` スコープが別途必要になり、`appsscript.json` の権限を1つ増やすことになるためです。個人利用が前提のため、権限を増やすより明示的な設定を必須にする方針にしています。
-
-7. ビルド＆デプロイ（型チェック→テスト→esbuildビルド→`clasp push` を一括実行）
+8. ビルド＆デプロイ（型チェック→テスト→esbuildビルド→`clasp push` を一括実行）
 
    ```sh
    pnpm run push
@@ -70,9 +77,9 @@ mise install   # mise.toml に記載のバージョンを取得
 
    > `clasp push` はマニフェスト更新時に上書き確認のプロンプトを出します。非対話環境（`!` 実行・CI など）で止まる場合は `pnpm exec clasp push -f` のように `-f`（force）を付けてください。
 
-8. GAS エディタで `setupDailyTrigger` を選択して手動実行する（OAuth 同意と時間主導トリガーの登録を行う。同じトリガーは重複登録されない）
+9. GAS エディタで `setupDailyTrigger` を選択して手動実行する（OAuth 同意と時間主導トリガーの登録を行う。同じトリガーは重複登録されない）
 
-9. `runDailyMailer` を一度手動実行し、メールが届くことを確認する
+10. `runDailyMailer` を一度手動実行し、Slackにメッセージが届くことを確認する
 
 ## 開発ループ
 
@@ -82,7 +89,7 @@ pnpm run typecheck  # tsc --noEmit で型チェック
 pnpm run push       # typecheck → test → build → clasp push
 ```
 
-`src/` 配下は通常の ES モジュール（`import`/`export`）で記述し、`esbuild` で `dist/main.js` に単一ファイルへバンドルしてから `clasp push` します。GAS ランタイム API（`CalendarApp`/`MailApp`/`UrlFetchApp`/`PropertiesService`）は `src/ports.ts` のインターフェース越しに `src/main.ts`（コンポジションルート）でのみ注入しているため、それ以外のロジックは vitest で GAS グローバルをモックせずにテストできます。
+`src/` 配下は通常の ES モジュール（`import`/`export`）で記述し、`esbuild` で `dist/main.js` に単一ファイルへバンドルしてから `clasp push` します。GAS ランタイム API（`CalendarApp`/`UrlFetchApp`/`PropertiesService`）は `src/ports.ts` のインターフェース越しに `src/main.ts`（コンポジションルート）でのみ注入しているため、それ以外のロジックは vitest で GAS グローバルをモックせずにテストできます。
 
 なお、esbuild は `bundle: true` でエントリを IIFE に包むため、GAS エディタの実行対象・トリガーから関数名で解決できるよう、`scripts/build.mjs` で `globalName` + `footer` を使い `runDailyMailer` / `setupDailyTrigger` をトップレベル関数として公開しています。
 
@@ -96,8 +103,9 @@ src/
 ├── calendar.ts  # カレンダー予定の取得・変換
 ├── theme.ts     # 週替わりテーマのローテーション
 ├── prompt.ts    # Geminiへのプロンプト構築・レスポンス解析
+├── http.ts      # UrlFetchAppのfetch＋ステータスチェックの共通処理
 ├── gemini.ts    # Gemini API呼び出し
-├── mailer.ts    # メール件名/本文の組み立て・送信
+├── slack.ts     # Slackメッセージの組み立て・Incoming Webhook送信
 ├── trigger.ts   # 時間主導トリガーのセットアップ
 └── main.ts      # コンポジションルート（GASエントリポイント）
 ```

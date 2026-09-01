@@ -11,11 +11,16 @@ function fakeReader(values: Record<string, string>): PropertyReader {
   };
 }
 
-const BASE_PROPERTIES = { GEMINI_API_KEY: 'key', NOTIFY_EMAIL: 'me@example.com' };
+const BASE_PROPERTIES = {
+  GEMINI_API_KEY: 'key',
+  SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/xxx',
+};
 
 describe('loadAppConfig', () => {
   it('APIキー未設定時はCONFIG_MISSING_API_KEYエラーを返す', () => {
-    const result = loadAppConfig(fakeReader({ NOTIFY_EMAIL: 'me@example.com' }));
+    const result = loadAppConfig(
+      fakeReader({ SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/xxx' }),
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('CONFIG_MISSING_API_KEY');
@@ -24,23 +29,24 @@ describe('loadAppConfig', () => {
 
   it('APIキーが空文字の場合もエラーを返す', () => {
     const result = loadAppConfig(
-      fakeReader({ GEMINI_API_KEY: '   ', NOTIFY_EMAIL: 'me@example.com' }),
+      fakeReader({
+        GEMINI_API_KEY: '   ',
+        SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/xxx',
+      }),
     );
     expect(result.ok).toBe(false);
   });
 
-  it('NOTIFY_EMAIL未設定時はCONFIG_MISSING_NOTIFY_EMAILエラーを返す', () => {
+  it('SLACK_WEBHOOK_URL未設定時はCONFIG_MISSING_SLACK_WEBHOOK_URLエラーを返す', () => {
     const result = loadAppConfig(fakeReader({ GEMINI_API_KEY: 'key' }));
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.code).toBe('CONFIG_MISSING_NOTIFY_EMAIL');
+      expect(result.error.code).toBe('CONFIG_MISSING_SLACK_WEBHOOK_URL');
     }
   });
 
-  it('NOTIFY_EMAILが空文字の場合もエラーを返す', () => {
-    const result = loadAppConfig(
-      fakeReader({ GEMINI_API_KEY: 'key', NOTIFY_EMAIL: '   ' }),
-    );
+  it('SLACK_WEBHOOK_URLが空文字の場合もエラーを返す', () => {
+    const result = loadAppConfig(fakeReader({ GEMINI_API_KEY: 'key', SLACK_WEBHOOK_URL: '   ' }));
     expect(result.ok).toBe(false);
   });
 
@@ -62,16 +68,16 @@ describe('loadAppConfig', () => {
     }
   });
 
-  it('SKIP_EMAIL_WHEN_NO_EVENTSを真偽値へ変換する', () => {
+  it('SKIP_NOTIFICATION_WHEN_NO_EVENTSを真偽値へ変換する', () => {
     expect(
-      loadAppConfig(fakeReader({ ...BASE_PROPERTIES, SKIP_EMAIL_WHEN_NO_EVENTS: 'true' })),
-    ).toMatchObject({ ok: true, value: { skipEmailWhenNoEvents: true } });
+      loadAppConfig(fakeReader({ ...BASE_PROPERTIES, SKIP_NOTIFICATION_WHEN_NO_EVENTS: 'true' })),
+    ).toMatchObject({ ok: true, value: { skipNotificationWhenNoEvents: true } });
     expect(
-      loadAppConfig(fakeReader({ ...BASE_PROPERTIES, SKIP_EMAIL_WHEN_NO_EVENTS: 'false' })),
-    ).toMatchObject({ ok: true, value: { skipEmailWhenNoEvents: false } });
+      loadAppConfig(fakeReader({ ...BASE_PROPERTIES, SKIP_NOTIFICATION_WHEN_NO_EVENTS: 'false' })),
+    ).toMatchObject({ ok: true, value: { skipNotificationWhenNoEvents: false } });
     expect(loadAppConfig(fakeReader(BASE_PROPERTIES))).toMatchObject({
       ok: true,
-      value: { skipEmailWhenNoEvents: false },
+      value: { skipNotificationWhenNoEvents: false },
     });
   });
 
@@ -93,11 +99,11 @@ describe('loadAppConfig', () => {
     }
   });
 
-  it('NOTIFY_EMAIL設定時はその値を使用する', () => {
+  it('SLACK_WEBHOOK_URL設定時はその値を使用する', () => {
     const result = loadAppConfig(fakeReader(BASE_PROPERTIES));
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.notifyEmail).toBe('me@example.com');
+      expect(result.value.slackWebhookUrl).toBe('https://hooks.slack.com/services/xxx');
     }
   });
 });

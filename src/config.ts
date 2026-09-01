@@ -32,23 +32,26 @@ export function loadAppConfig(reader: PropertyReader): Result<AppConfig> {
     });
   }
 
-  const notifyEmail = reader.getProperty('NOTIFY_EMAIL')?.trim();
-  if (notifyEmail === undefined || notifyEmail === '') {
+  const slackWebhookUrl = reader.getProperty('SLACK_WEBHOOK_URL')?.trim();
+  if (slackWebhookUrl === undefined || slackWebhookUrl === '') {
     return err({
-      code: 'CONFIG_MISSING_NOTIFY_EMAIL',
-      message: 'Script Property "NOTIFY_EMAIL" が設定されていません',
+      code: 'CONFIG_MISSING_SLACK_WEBHOOK_URL',
+      message: 'Script Property "SLACK_WEBHOOK_URL" が設定されていません',
     });
   }
 
   const geminiModel = reader.getProperty('GEMINI_MODEL')?.trim() || DEFAULT_MODEL;
-  const skipEmailWhenNoEvents = parseBoolean(reader.getProperty('SKIP_EMAIL_WHEN_NO_EVENTS'), false);
+  const skipNotificationWhenNoEvents = parseBoolean(
+    reader.getProperty('SKIP_NOTIFICATION_WHEN_NO_EVENTS'),
+    false,
+  );
   const themes = parseThemeList(reader.getProperty('THEME_LIST'));
 
   return ok({
     geminiApiKey,
     geminiModel,
-    notifyEmail,
-    skipEmailWhenNoEvents,
+    slackWebhookUrl,
+    skipNotificationWhenNoEvents,
     themes,
   });
 }

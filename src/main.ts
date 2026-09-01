@@ -1,7 +1,7 @@
 import { fetchTodayEvents } from './calendar.js';
 import { loadAppConfig } from './config.js';
 import { fetchGeminiTitleResult } from './gemini.js';
-import { sendDailyMail } from './mailer.js';
+import { sendDailyNotification, sendErrorNotification } from './slack.js';
 import { getIsoWeekId, resolveThemeForWeek } from './theme.js';
 import { setupDailyTrigger as setupDailyTriggerImpl } from './trigger.js';
 import { buildFallbackTitleResult } from './prompt.js';
@@ -15,10 +15,9 @@ function notifyFailure(config: AppConfig | null, context: string): void {
   if (config === null) {
     return;
   }
-  try {
-    MailApp.sendEmail(config.notifyEmail, 'calendar-title-mailerでエラーが発生しました', context);
-  } catch (cause) {
-    logError('エラー通知メールの送信にも失敗しました', cause);
+  const result = sendErrorNotification(UrlFetchApp, config.slackWebhookUrl, context);
+  if (!result.ok) {
+    logError('エラー通知のSlack送信にも失敗しました', result.error);
   }
 }
 
@@ -66,13 +65,13 @@ export function runDailyMailer(): void {
     scheduleInput = { date: today, events };
   } catch (cause) {
     logError('カレンダー予定の取得に失敗しました', cause);
-    notifyFailure(config, 'カレンダー予定の取得に失敗したため、本日のメールは送信されませんでした');
+    notifyFailure(config, 'カレンダー予定の取得に失敗したため、本日の通知は送信されませんでした');
     return;
   }
 
   const theme = resolveWeeklyTheme(config, properties);
 
-  if (scheduleInput.events.length === 0 && config.skipEmailWhenNoEvents) {
+  if (scheduleInput.events.length === 0 && config.skipNotificationWhenNoEvents) {
     console.log('[calendar-title-mailer] 予定がないため送信をスキップしました');
     return;
   }
@@ -93,10 +92,9 @@ export function runDailyMailer(): void {
     titleResult = buildFallbackTitleResult(scheduleInput, theme);
   }
 
-  try {
-    sendDailyMail(MailApp, config.notifyEmail, titleResult);
-  } catch (cause) {
-    logError('メール送信に失敗しました', cause);
+  const sendResult = sendDailyNotification(UrlFetchApp, config.slackWebhookUrl, titleResult);
+  if (!sendResult.ok) {
+    logError('Slackへの通知送信に失敗しました', sendResult.error);
   }
 }
 

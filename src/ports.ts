@@ -5,10 +5,6 @@ export interface HttpFetcher {
   ): GoogleAppsScript.URL_Fetch.HTTPResponse;
 }
 
-export interface MailSender {
-  sendEmail(to: string, subject: string, body: string): void;
-}
-
 export interface PropertyReader {
   getProperty(key: string): string | null;
 }

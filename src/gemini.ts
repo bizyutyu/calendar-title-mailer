@@ -1,3 +1,4 @@
+import { fetchOk } from './http.js';
 import type { HttpFetcher } from './ports.js';
 import { buildPrompt, buildResponseSchema, parseGeminiResponseText } from './prompt.js';
 import type { DailyScheduleInput, GeminiGenerateContentRequest, Result, TitleResult } from './types.js';
@@ -29,30 +30,22 @@ export function fetchGeminiTitleResult(
   const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const request = buildGeminiRequest(input, theme);
 
-  let response: GoogleAppsScript.URL_Fetch.HTTPResponse;
-  try {
-    response = fetcher.fetch(url, {
+  const fetchResult = fetchOk(
+    fetcher,
+    url,
+    {
       method: 'post',
       contentType: 'application/json',
       payload: JSON.stringify(request),
       muteHttpExceptions: true,
-    });
-  } catch (cause) {
-    return err({
-      code: 'GEMINI_REQUEST_FAILED',
-      message: 'Gemini APIへのリクエストに失敗しました',
-      cause,
-    });
+    },
+    'GEMINI_REQUEST_FAILED',
+    'Gemini API',
+  );
+  if (!fetchResult.ok) {
+    return fetchResult;
   }
-
-  const statusCode = response.getResponseCode();
-  if (statusCode < 200 || statusCode >= 300) {
-    return err({
-      code: 'GEMINI_REQUEST_FAILED',
-      message: `Gemini APIがエラーステータスを返しました: ${statusCode}`,
-      cause: response.getContentText(),
-    });
-  }
+  const response = fetchResult.value;
 
   let body: unknown;
   try {

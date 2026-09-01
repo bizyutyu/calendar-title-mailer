@@ -40,18 +40,18 @@ export interface ThemeState {
 export interface AppConfig {
   geminiApiKey: string;
   geminiModel: string;
-  notifyEmail: string;
-  skipEmailWhenNoEvents: boolean;
+  slackWebhookUrl: string;
+  skipNotificationWhenNoEvents: boolean;
   themes: string[];
 }
 
 export type AppErrorCode =
   | 'CONFIG_MISSING_API_KEY'
-  | 'CONFIG_MISSING_NOTIFY_EMAIL'
+  | 'CONFIG_MISSING_SLACK_WEBHOOK_URL'
   | 'CALENDAR_FETCH_FAILED'
   | 'GEMINI_REQUEST_FAILED'
   | 'GEMINI_RESPONSE_INVALID'
-  | 'MAIL_SEND_FAILED';
+  | 'SLACK_SEND_FAILED';
 
 export interface AppError {
   code: AppErrorCode;
