@@ -1,4 +1,4 @@
-import { fetchTodayEvents } from './calendar.js';
+import { fetchEventsForDay, getNextDay } from './calendar.js';
 import { loadAppConfig } from './config.js';
 import { fetchGeminiTitleResult } from './gemini.js';
 import { sendDailyNotification, sendErrorNotification } from './slack.js';
@@ -60,9 +60,10 @@ export function runDailyMailer(): void {
 
   let scheduleInput: DailyScheduleInput;
   try {
-    const events = fetchTodayEvents(CalendarApp.getDefaultCalendar());
-    const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    scheduleInput = { date: today, events };
+    const targetDay = getNextDay(new Date());
+    const events = fetchEventsForDay(CalendarApp.getDefaultCalendar(), targetDay);
+    const targetDate = Utilities.formatDate(targetDay, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    scheduleInput = { date: targetDate, events };
   } catch (cause) {
     logError('カレンダー予定の取得に失敗しました', cause);
     notifyFailure(config, 'カレンダー予定の取得に失敗したため、本日の通知は送信されませんでした');

@@ -30,9 +30,20 @@ export function toEventSummaries(events: readonly CalendarEventLike[]): Calendar
     }));
 }
 
-export function fetchTodayEvents(
+/**
+ * 基準日時の翌日（同時刻）を返す。月末・年末・うるう年の繰り上がりは Date に任せる。
+ * 引数は変更しない。
+ */
+export function getNextDay(base: Date): Date {
+  const next = new Date(base.getTime());
+  next.setDate(next.getDate() + 1);
+  return next;
+}
+
+export function fetchEventsForDay(
   calendar: GoogleAppsScript.Calendar.Calendar,
+  day: Date,
 ): CalendarEventSummary[] {
-  const events = calendar.getEventsForDay(new Date());
+  const events = calendar.getEventsForDay(day);
   return toEventSummaries(events);
 }
