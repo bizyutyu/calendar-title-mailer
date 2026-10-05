@@ -3,7 +3,7 @@ import type { HttpFetcher } from './ports.js';
 import type { Result, TitleResult } from './types.js';
 import { ok } from './types.js';
 
-const SUBJECT_PREFIX = '【本日のタイトル】';
+const SUBJECT_PREFIX = '【明日のタイトル】';
 
 // Slack mrkdwnは & < > を特殊文字として解釈するため、動的な本文はAPI仕様通りにエスケープする。
 // https://api.slack.com/reference/surfaces/formatting#escaping

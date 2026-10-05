@@ -6,7 +6,7 @@ const SUMMARY_MAX_LENGTH = 80;
 
 function formatEventsForPrompt(input: DailyScheduleInput): string {
   if (input.events.length === 0) {
-    return '本日の予定は登録されていません。';
+    return '明日の予定は登録されていません。';
   }
   return input.events
     .map((event) => {
@@ -19,7 +19,7 @@ function formatEventsForPrompt(input: DailyScheduleInput): string {
 export function buildPrompt(input: DailyScheduleInput, theme: string): string {
   return [
     `あなたは今週の「世界観テーマ: ${theme}」に沿って、ユーザーの1日を彩るメールの見出しと本文を作る担当です。`,
-    `以下は${input.date}の予定一覧です。予定の詳細をそのまま書き写さず、テーマの世界観・文体を反映した短いタイトルと、その日の予定内容が伝わる要約文（summary）を作成してください。`,
+    `以下は明日（${input.date}）の予定一覧です。予定の詳細をそのまま書き写さず、テーマの世界観・文体を反映した短いタイトルと、その日の予定内容が伝わる要約文（summary）を作成してください。`,
     '',
     formatEventsForPrompt(input),
     '',
@@ -86,12 +86,12 @@ export function parseGeminiResponseText(text: string): Result<TitleResult> {
 export function buildFallbackTitleResult(input: DailyScheduleInput, theme: string): TitleResult {
   if (input.events.length === 0) {
     return {
-      title: `今日はゆとりの日`,
+      title: `明日はゆとりの日`,
       summary: `予定なし。テーマ「${theme}」の一日を自由に。`,
     };
   }
   return {
-    title: `今日の予定 (${input.events.length}件)`,
-    summary: `テーマ「${theme}」で1日が始まります。`,
+    title: `明日の予定 (${input.events.length}件)`,
+    summary: `明日はテーマ「${theme}」の1日です。`,
   };
 }

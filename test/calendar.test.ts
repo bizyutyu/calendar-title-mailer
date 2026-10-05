@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toEventSummaries } from '../src/calendar.js';
+import { getNextDay, toEventSummaries } from '../src/calendar.js';
 import type { CalendarEventLike } from '../src/calendar.js';
 
 function fakeEvent(
@@ -72,5 +72,44 @@ describe('toEventSummaries', () => {
 
   it('空配列の場合は空配列を返す', () => {
     expect(toEventSummaries([])).toEqual([]);
+  });
+});
+
+describe('getNextDay', () => {
+  it('同じ月内では日付が1日進む', () => {
+    const next = getNextDay(new Date(2026, 8, 29, 7, 0));
+    expect([next.getFullYear(), next.getMonth(), next.getDate()]).toEqual([2026, 8, 30]);
+  });
+
+  it('月末は翌月1日に繰り上がる', () => {
+    const next = getNextDay(new Date(2026, 8, 30, 7, 0));
+    expect([next.getFullYear(), next.getMonth(), next.getDate()]).toEqual([2026, 9, 1]);
+  });
+
+  it('年末は翌年1月1日に繰り上がる', () => {
+    const next = getNextDay(new Date(2026, 11, 31, 7, 0));
+    expect([next.getFullYear(), next.getMonth(), next.getDate()]).toEqual([2027, 0, 1]);
+  });
+
+  it('うるう年の2月28日は2月29日になる', () => {
+    const next = getNextDay(new Date(2028, 1, 28, 7, 0));
+    expect([next.getFullYear(), next.getMonth(), next.getDate()]).toEqual([2028, 1, 29]);
+  });
+
+  it('平年の2月28日は3月1日になる', () => {
+    const next = getNextDay(new Date(2026, 1, 28, 7, 0));
+    expect([next.getFullYear(), next.getMonth(), next.getDate()]).toEqual([2026, 2, 1]);
+  });
+
+  it('日付の直前（23:59）でも翌日になり、時刻は保持される', () => {
+    const next = getNextDay(new Date(2026, 8, 29, 23, 59));
+    expect([next.getDate(), next.getHours(), next.getMinutes()]).toEqual([30, 23, 59]);
+  });
+
+  it('引数のDateを変更しない', () => {
+    const base = new Date(2026, 8, 29, 7, 0);
+    const before = base.getTime();
+    getNextDay(base);
+    expect(base.getTime()).toBe(before);
   });
 });
