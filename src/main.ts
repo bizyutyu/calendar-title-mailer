@@ -66,7 +66,7 @@ export function runDailyMailer(): void {
     scheduleInput = { date: targetDate, events };
   } catch (cause) {
     logError('カレンダー予定の取得に失敗しました', cause);
-    notifyFailure(config, 'カレンダー予定の取得に失敗したため、本日の通知は送信されませんでした');
+    notifyFailure(config, 'カレンダー予定の取得に失敗したため、明日の予定の通知は送信されませんでした');
     return;
   }
 

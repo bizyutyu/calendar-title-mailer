@@ -19,6 +19,13 @@ describe('buildPrompt', () => {
     expect(prompt).toContain('2026-08-06');
   });
 
+  it('対象日が明日であることをプロンプトに明示する', () => {
+    const input: DailyScheduleInput = { date: '2026-08-06', events: [] };
+    const prompt = buildPrompt(input, 'SF風');
+    expect(prompt).toContain('明日（2026-08-06）');
+    expect(prompt).not.toMatch(/本日|今日/);
+  });
+
   it('予定が0件の場合は予定なしの旨を含める', () => {
     const input: DailyScheduleInput = { date: '2026-08-06', events: [] };
     const prompt = buildPrompt(input, 'SF風');
@@ -82,6 +89,21 @@ describe('buildFallbackTitleResult', () => {
     const result = buildFallbackTitleResult(input, 'SF風');
     expect(result.title).toContain('ゆとり');
     expect(result.summary).toContain('SF風');
+  });
+
+  it('フォールバック文言は明日向けの表現になる', () => {
+    const empty = buildFallbackTitleResult({ date: '2026-08-06', events: [] }, 'SF風');
+    const some = buildFallbackTitleResult(
+      {
+        date: '2026-08-06',
+        events: [{ title: 'A', startTime: '09:00', endTime: '10:00', isAllDay: false }],
+      },
+      'SF風',
+    );
+    for (const result of [empty, some]) {
+      expect(result.title).toContain('明日');
+      expect(`${result.title}${result.summary}`).not.toMatch(/本日|今日/);
+    }
   });
 
   it('予定がある場合は件数とテーマ名を含む文言を返す', () => {
