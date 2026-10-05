@@ -52,7 +52,7 @@ function describeError(error: unknown): string {
 }
 
 function logError(context: string, error: unknown): void {
-  console.error(`[calendar-title-mailer] ${context}: ${describeError(error)}`);
+  console.error(`[tomorrow-calendar-digest] ${context}: ${describeError(error)}`);
 }
 
 function notifyFailure(config: AppConfig | null, context: string): void {
@@ -95,7 +95,7 @@ function resolveDailyTheme(
   return theme;
 }
 
-export function runDailyMailer(): void {
+export function runDailyDigest(): void {
   const startedAt = Date.now();
   const properties = PropertiesService.getScriptProperties();
 
@@ -120,7 +120,7 @@ export function runDailyMailer(): void {
   }
 
   if (scheduleInput.events.length === 0 && config.skipNotificationWhenNoEvents) {
-    console.log('[calendar-title-mailer] 予定がないため送信をスキップしました');
+    console.log('[tomorrow-calendar-digest] 予定がないため送信をスキップしました');
     return;
   }
 
@@ -152,6 +152,6 @@ export function setupDailyTrigger(): void {
   setupDailyTriggerImpl();
 }
 
-// runDailyMailer / setupDailyTrigger は scripts/build.mjs の esbuild 設定
+// runDailyDigest / setupDailyTrigger は scripts/build.mjs の esbuild 設定
 // （globalName + footer）で GAS グローバルのトップレベル関数として公開され、
 // エディタの実行対象・時間主導トリガーから関数名で解決される。
