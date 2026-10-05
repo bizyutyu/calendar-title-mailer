@@ -1,20 +1,8 @@
 import type { PropertyReader } from './ports.js';
-import { DEFAULT_THEMES } from './theme.js';
 import type { AppConfig, Result } from './types.js';
 import { err, ok } from './types.js';
 
 const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
-
-function parseThemeList(raw: string | null): string[] {
-  if (raw === null) {
-    return [...DEFAULT_THEMES];
-  }
-  const themes = raw
-    .split(',')
-    .map((theme) => theme.trim())
-    .filter((theme) => theme.length > 0);
-  return themes.length > 0 ? themes : [...DEFAULT_THEMES];
-}
 
 function parseBoolean(raw: string | null, defaultValue: boolean): boolean {
   if (raw === null) {
@@ -45,13 +33,11 @@ export function loadAppConfig(reader: PropertyReader): Result<AppConfig> {
     reader.getProperty('SKIP_NOTIFICATION_WHEN_NO_EVENTS'),
     false,
   );
-  const themes = parseThemeList(reader.getProperty('THEME_LIST'));
 
   return ok({
     geminiApiKey,
     geminiModel,
     slackWebhookUrl,
     skipNotificationWhenNoEvents,
-    themes,
   });
 }

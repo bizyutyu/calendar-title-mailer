@@ -10,9 +10,19 @@ export interface DailyScheduleInput {
   events: CalendarEventSummary[];
 }
 
-export interface TitleResult {
-  title: string;
-  summary: string;
+export interface ThemeSeed {
+  genre: string; // ジャンル・文体（どう語るか）
+  motif: string; // 題材（何をモチーフにするか）
+  setting: string; // 舞台・時代（どこで・いつ）
+}
+
+export interface RetryPolicy {
+  maxAttempts: number;
+  baseDelayMs: number;
+  sleep(ms: number): void;
+  random(): number; // 0以上1未満。ジッター算出用
+  now(): number; // epoch ms
+  deadlineAt: number; // epoch ms。待機後にこれを超える再試行は行わない
 }
 
 export interface GeminiGenerateContentRequest {
@@ -32,17 +42,11 @@ export interface GeminiGenerateContentResponse {
   promptFeedback?: { blockReason?: string };
 }
 
-export interface ThemeState {
-  weekId: string; // ISO週識別子 "YYYY-Www"
-  themeIndex: number; // themes配列上の現在位置
-}
-
 export interface AppConfig {
   geminiApiKey: string;
   geminiModel: string;
   slackWebhookUrl: string;
   skipNotificationWhenNoEvents: boolean;
-  themes: string[];
 }
 
 export type AppErrorCode =
@@ -51,6 +55,7 @@ export type AppErrorCode =
   | 'CALENDAR_FETCH_FAILED'
   | 'GEMINI_REQUEST_FAILED'
   | 'GEMINI_RESPONSE_INVALID'
+  | 'GEMINI_GENERATION_BLOCKED'
   | 'SLACK_SEND_FAILED';
 
 export interface AppError {
