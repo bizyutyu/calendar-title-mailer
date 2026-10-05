@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { loadAppConfig } from '../src/config.js';
-import { DEFAULT_THEMES } from '../src/theme.js';
 import type { PropertyReader } from '../src/ports.js';
 
 function fakeReader(values: Record<string, string>): PropertyReader {
@@ -79,24 +78,6 @@ describe('loadAppConfig', () => {
       ok: true,
       value: { skipNotificationWhenNoEvents: false },
     });
-  });
-
-  it('THEME_LIST未設定時はDEFAULT_THEMESを使用する', () => {
-    const result = loadAppConfig(fakeReader(BASE_PROPERTIES));
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.themes).toEqual([...DEFAULT_THEMES]);
-    }
-  });
-
-  it('THEME_LIST設定時はカンマ区切りでパースし前後の空白を除去する', () => {
-    const result = loadAppConfig(
-      fakeReader({ ...BASE_PROPERTIES, THEME_LIST: ' 昭和レトロ風 , 未来都市風 ,,宇宙探索風 ' }),
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.themes).toEqual(['昭和レトロ風', '未来都市風', '宇宙探索風']);
-    }
   });
 
   it('SLACK_WEBHOOK_URL設定時はその値を使用する', () => {

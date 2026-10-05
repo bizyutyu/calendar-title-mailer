@@ -1,10 +1,15 @@
 # calendar-title-mailer
 
-毎朝、Google カレンダー（デフォルトカレンダー）の翌日の予定をもとに、Gemini API でタイトルと要約を生成し、Slack（Incoming Webhook）で通知する Google Apps Script (GAS) プロジェクトです。
+毎朝、Google カレンダー（デフォルトカレンダー）の翌日の予定をもとに、Gemini API で「世界観テーマ」とそのテーマに沿った文章を生成し、Slack（Incoming Webhook）で通知する Google Apps Script (GAS) プロジェクトです。
 
-通知メッセージの1行目には固定プレフィックス `【明日のタイトル】` + Geminiが生成したタイトル、続けてその日の予定をユニークに要約した文章が入ります（予定一覧そのものはメッセージ本文に含まれません）。固定プレフィックスにより、後から検索・絞り込みしやすくしています。
+通知メッセージは `{文章}（テーマ：{テーマ}）` の1行です（予定一覧そのものはメッセージ本文に含まれません）。過去の通知は Slack で「テーマ：」と検索すると絞り込めます。
 
-毎週、固定リストの中から「世界観テーマ」（SF風、時代劇風、スポーツ実況風…）を1つ順番に選び、その週はGeminiにそのテーマの文体でタイトル・要約を生成させます。
+Gemini は1回の実行で最大2回呼び出します。
+
+1. **テーマ生成**: 日付から決まる乱数で `src/themeSeed.ts` の3つの語彙（ジャンル・文体／題材／舞台・時代、各20語）から1語ずつ選び、Gemini にそこから連想した10文字以内のテーマを作らせます。乱数の値そのものではなく語を渡すことで、テーマの傾向がモデルの癖に寄りすぎないようにしています。同じ日に再実行すると同じ3語が選ばれます。直近7日分のテーマはスクリプトプロパティ `RECENT_THEMES` に自動保存され、重複を避けるようプロンプトに含めます。
+2. **文章生成**: 翌日の予定とテーマを渡し、テーマの文体で80文字以内の文章を作らせます。
+
+Gemini の一時的なエラー（408 / 429 / 5xx・通信エラー）は、指数バックオフ＋ジッターで最大3回まで再試行します（[公式の推奨](https://ai.google.dev/gemini-api/docs/troubleshooting)に準拠）。それでも失敗した場合や、安全性フィルタなどで生成が停止された場合は、テーマは「題材×ジャンル」、文章は定型文に切り替えて通知自体は必ず送ります。
 
 ## 前提ツール
 
@@ -67,7 +72,9 @@ mise install   # mise.toml に記載のバージョンを取得
    | `GEMINI_MODEL` | - | Gemini のモデル名。未設定時は `gemini-3.5-flash-lite` |
    | `SLACK_WEBHOOK_URL` | ✅ | 手順6で発行した Slack Incoming Webhook の URL |
    | `SKIP_NOTIFICATION_WHEN_NO_EVENTS` | - | `true`/`false`。予定が0件の日に送信をスキップするか（未設定時は`false`＝スキップしない） |
-   | `THEME_LIST` | - | カンマ区切りの週替わりテーマ一覧。未設定時は `src/theme.ts` のデフォルト一覧を使用 |
+   | `RECENT_THEMES` | - | 設定不要。直近7日分のテーマをアプリが自動で保存する |
+
+   > 以前のバージョンで使っていた `THEME_LIST` / `THEME_WEEK_ID` / `THEME_INDEX` は現在使われていません。残っていても動作に影響はなく、手動で削除して構いません。
 
 8. ビルド＆デプロイ（型チェック→テスト→esbuildビルド→`clasp push` を一括実行）
 
@@ -101,9 +108,9 @@ src/
 ├── ports.ts     # GASランタイムAPIを抽象化するインターフェース
 ├── config.ts    # Script Properties経由の設定読み込み
 ├── calendar.ts  # カレンダー予定の取得・変換
-├── theme.ts     # 週替わりテーマのローテーション
+├── themeSeed.ts # テーマのシード語彙・日付からの乱数・直近テーマ履歴
 ├── prompt.ts    # Geminiへのプロンプト構築・レスポンス解析
-├── http.ts      # UrlFetchAppのfetch＋ステータスチェックの共通処理
+├── http.ts      # UrlFetchAppのfetch＋ステータスチェック・再試行の共通処理
 ├── gemini.ts    # Gemini API呼び出し
 ├── slack.ts     # Slackメッセージの組み立て・Incoming Webhook送信
 ├── trigger.ts   # 時間主導トリガーのセットアップ
