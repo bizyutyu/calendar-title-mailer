@@ -31,7 +31,7 @@ describe('buildDailyMessageText', () => {
 describe('buildErrorMessageText', () => {
   it('contextに含まれる & < > をエスケープする', () => {
     const text = buildErrorMessageText('<failure> & more');
-    expect(text).toBe(':warning: calendar-title-mailerでエラーが発生しました\n&lt;failure&gt; &amp; more');
+    expect(text).toBe(':warning: tomorrow-calendar-digestでエラーが発生しました\n&lt;failure&gt; &amp; more');
   });
 });
 

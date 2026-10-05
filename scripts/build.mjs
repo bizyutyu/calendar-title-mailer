@@ -15,7 +15,7 @@ mkdirSync(distDir, { recursive: true });
 // globalName で IIFE の戻り値（export 群）を受け取り、footer でトップレベルの
 // 薄いラッパー関数として再公開することで、エディタの実行ドロップダウンとトリガーの
 // 両方から解決できるようにする。
-const entryFunctions = ['runDailyMailer', 'setupDailyTrigger'];
+const entryFunctions = ['runDailyDigest', 'setupDailyTrigger'];
 
 await build({
   entryPoints: [path.join(rootDir, 'src', 'main.ts')],

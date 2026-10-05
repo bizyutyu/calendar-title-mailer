@@ -1,4 +1,4 @@
-# calendar-title-mailer
+# tomorrow-calendar-digest
 
 毎朝、Google カレンダー（デフォルトカレンダー）の翌日の予定をもとに、Gemini API で「世界観テーマ」とそのテーマに沿った文章を生成し、Slack（Incoming Webhook）で通知する Google Apps Script (GAS) プロジェクトです。
 
@@ -44,7 +44,7 @@ mise install   # mise.toml に記載のバージョンを取得
 4. GAS プロジェクトを作成
 
    ```sh
-   pnpm exec clasp create --type standalone --title "calendar-title-mailer" --rootDir dist
+   pnpm exec clasp create --type standalone --title "tomorrow-calendar-digest" --rootDir dist
    ```
 
    生成された `.clasp.json` は `scriptId` を含むため `.gitignore` 対象です（コミットしないでください）。
@@ -86,7 +86,7 @@ mise install   # mise.toml に記載のバージョンを取得
 
 9. GAS エディタで `setupDailyTrigger` を選択して手動実行する（OAuth 同意と時間主導トリガーの登録を行う。同じトリガーは重複登録されない）
 
-10. `runDailyMailer` を一度手動実行し、Slackにメッセージが届くことを確認する
+10. `runDailyDigest` を一度手動実行し、Slackにメッセージが届くことを確認する
 
 ## 開発ループ
 
@@ -98,7 +98,7 @@ pnpm run push       # typecheck → test → build → clasp push
 
 `src/` 配下は通常の ES モジュール（`import`/`export`）で記述し、`esbuild` で `dist/main.js` に単一ファイルへバンドルしてから `clasp push` します。GAS ランタイム API（`CalendarApp`/`UrlFetchApp`/`PropertiesService`）は `src/ports.ts` のインターフェース越しに `src/main.ts`（コンポジションルート）でのみ注入しているため、それ以外のロジックは vitest で GAS グローバルをモックせずにテストできます。
 
-なお、esbuild は `bundle: true` でエントリを IIFE に包むため、GAS エディタの実行対象・トリガーから関数名で解決できるよう、`scripts/build.mjs` で `globalName` + `footer` を使い `runDailyMailer` / `setupDailyTrigger` をトップレベル関数として公開しています。
+なお、esbuild は `bundle: true` でエントリを IIFE に包むため、GAS エディタの実行対象・トリガーから関数名で解決できるよう、`scripts/build.mjs` で `globalName` + `footer` を使い `runDailyDigest` / `setupDailyTrigger` をトップレベル関数として公開しています。
 
 ## ディレクトリ構成
 

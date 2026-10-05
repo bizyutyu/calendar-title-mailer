@@ -14,7 +14,7 @@ export function buildDailyMessageText(summary: string, theme: string): string {
 }
 
 export function buildErrorMessageText(context: string): string {
-  return `:warning: calendar-title-mailerでエラーが発生しました\n${escapeSlackMrkdwn(context)}`;
+  return `:warning: tomorrow-calendar-digestでエラーが発生しました\n${escapeSlackMrkdwn(context)}`;
 }
 
 function postToSlack(fetcher: HttpFetcher, webhookUrl: string, text: string): Result<void> {

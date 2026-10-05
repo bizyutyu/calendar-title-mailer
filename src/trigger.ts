@@ -2,6 +2,8 @@ export interface TriggerLike {
   getHandlerFunction(): string;
 }
 
+export const DAILY_DIGEST_FUNCTION_NAME = 'runDailyDigest';
+
 export function hasExistingTrigger(
   triggers: readonly TriggerLike[],
   functionName: string,
@@ -9,15 +11,13 @@ export function hasExistingTrigger(
   return triggers.some((trigger) => trigger.getHandlerFunction() === functionName);
 }
 
-const DAILY_MAILER_FUNCTION_NAME = 'runDailyMailer';
-
 export function setupDailyTrigger(): void {
   const existingTriggers = ScriptApp.getProjectTriggers();
-  if (hasExistingTrigger(existingTriggers, DAILY_MAILER_FUNCTION_NAME)) {
+  if (hasExistingTrigger(existingTriggers, DAILY_DIGEST_FUNCTION_NAME)) {
     return;
   }
 
-  ScriptApp.newTrigger(DAILY_MAILER_FUNCTION_NAME)
+  ScriptApp.newTrigger(DAILY_DIGEST_FUNCTION_NAME)
     .timeBased()
     .everyDays(1)
     .atHour(7)
